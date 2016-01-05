@@ -5,7 +5,7 @@
 # This script is based of the AutoMySQLBackup Script Ver 2.2
 # It can be found at http://sourceforge.net/projects/automysqlbackup/
 #
-# The PostgreSQL changes are based on a patch agaisnt AutoMySQLBackup 1.9
+# The PostgreSQL changes are based on a patch against AutoMySQLBackup 1.9
 # created by Friedrich Lobenstock <fl@fl.priv.at>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -21,14 +21,48 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+#=====================================================================
 #
+#  DO NOT EDIT THIS SCRIPT!!
+#
+#  Use a config file and run was `autopgsqlbackup.sh -c /path/to/cfg`
+#
+#=====================================================================
+
+## Check command line options
+while [ $# -gt 0 ]; do
+  case $1 in
+    -c)
+      CONFIG_FILE_PATH="$2"
+      shift 2
+      ;;
+    *)
+      echo "Unknown Option \"$1\"" 1>&2
+      exit 2
+      ;;
+  esac
+done
+
+## Load config
+if [ ! -z $CONFIG_FILE_PATH ]; then
+  if [ ! -r ${CONFIG_FILE_PATH} ]; then
+    echo "Could not read config file" 1>&2
+    exit 1
+  fi
+
+  source "$CONFIG_FILE_PATH"
+fi
+
 #=====================================================================
 # Set the following variables to your system needs
 # (Detailed instructions below variables)
 #=====================================================================
 
 # Username to access the PostgreSQL server e.g. dbuser
-USERNAME=postgres
+if [ "x$USERNAME" == "x" ]; then
+  USERNAME=postgres
+fi
 
 # Password
 # create a file $HOME/.pgpass containing a line like this
@@ -37,26 +71,38 @@ USERNAME=postgres
 # the value of USERNAME
 
 # Host name (or IP address) of PostgreSQL server e.g localhost
-DBHOST=localhost
+if [ "x$DBHOST" == "x" ]; then
+  DBHOST=localhost
+fi
 
 # List of DBNAMES for Daily/Weekly Backup e.g. "DB1 DB2 DB3"
-DBNAMES="all"
+if [ "x$DBNAMES" == "x" ]; then
+  DBNAMES="all"
+fi
 
 # Backup directory location e.g /backups
-BACKUPDIR="/var/backups/postgres"
+if [ "x$BACKUPDIR" == "x" ]; then
+  BACKUPDIR="/var/backups/postgres"
+fi
 
 # Mail setup
 # What would you like to be mailed to you?
 # - log   : send only log file
 # - files : send log file and sql files as attachments (see docs)
 # - stdout : will simply output the log to the screen if run manually.
-MAILCONTENT="log"
+if [ "x$MAINCONTENT" == "x" ]; then
+  MAILCONTENT="log"
+fi
 
 # Set the maximum allowed email size in k. (4000 = approx 5MB email [see docs])
-MAXATTSIZE="4000"
+if [ "xMAXATTSIZE$" == "x" ]; then
+  MAXATTSIZE="4000"
+fi
 
 # Email Address to send mail to? (user@domain.com)
-MAILADDR="root@localhost"
+if [ "x$MAILADDR" == "x" ]; then
+  MAILADDR="root@localhost"
+fi
 
 
 # ============================================================
@@ -64,22 +110,34 @@ MAILADDR="root@localhost"
 #=============================================================
 
 # List of DBBNAMES for Monthly Backups.
-MDBNAMES="template1 $DBNAMES"
+if [ "x$MDBNAMES" == "x" ]; then
+  MDBNAMES="template1 $DBNAMES"
+fi
 
 # List of DBNAMES to EXLUCDE if DBNAMES are set to all (must be in " quotes)
-DBEXCLUDE=""
+if [ "x$DBEXCLUDE" == "x" ]; then
+  DBEXCLUDE=""
+fi
 
 # Include CREATE DATABASE in backup?
-CREATE_DATABASE=yes
+if [ "x$CREATE_DATABASE" == "x" ]; then
+  CREATE_DATABASE=yes
+fi
 
 # Separate backup directory and file for each DB? (yes or no)
-SEPDIR=yes
+if [ "x$SEPDIR" == "x" ]; then
+  SEPDIR=yes
+fi
 
 # Which day do you want weekly backups? (1 to 7 where 1 is Monday)
-DOWEEKLY=6
+if [ "x$DOWEEKLY" == "x" ]; then
+  DOWEEKLY=6
+fi
 
 # Choose Compression type. (gzip or bzip2)
-COMP=bzip2
+if [ "x$COMP" == "x" ]; then
+  COMP=gzip
+fi
 
 # Command to run before backups (uncomment to use)
 #PREBACKUP="/etc/pgsql-backup-pre"
@@ -111,7 +169,7 @@ COMP=bzip2
 #
 # The MAILCONTENT and MAILADDR options and pretty self explanitory, use
 # these to have the backup log mailed to you at any email address or multiple
-# email addresses in a space seperated list.
+# email addresses in a space separated list.
 # (If you set mail content to "log" you will require access to the "mail" program
 # on your server. If you set this to "files" you will have to have mutt installed
 # on your server. If you set it sto stdout it will log to the screen if run from
@@ -157,7 +215,7 @@ COMP=bzip2
 #
 # The SEPDIR option allows you to choose to have all DBs backed up to
 # a single file (fast restore of entire server in case of crash) or to
-# seperate directories for each DB (each DB can be restored seperately
+# separate directories for each DB (each DB can be restored separately
 # in case of single DB corruption or loss).
 #
 # To set the day of the week that you would like the weekly backup to happen
@@ -331,7 +389,7 @@ echo
 echo Backup of Database Server - $DBHOST
 echo ======================================================================
 
-# Test is seperate DB backups are required
+# Test is separate DB backups are required
 if [ "$SEPDIR" = "yes" ]; then
 echo Backup Start Time `date`
 echo ======================================================================
